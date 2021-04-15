@@ -48,12 +48,22 @@ spec:
     matchLabels:
       role: pingdirectory
   serviceName: pingdirectory-cluster
+  volumeClaimTemplates:
+  - metadata:
+      name: shared-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
         role: pingdirectory
       name: pingdirectory
     spec:
+      securityContext:
+        fsGroup: 9999
       containers:
       - envFrom:
         - configMapRef:
@@ -95,4 +105,28 @@ spec:
           requests:
             cpu: "2"
             memory: 2Gi
+        volumeMounts:
+        - name: shared-data
+          mountPath: /opt/out
+      - envFrom:
+        - configMapRef:
+            name: pingdirectory-environment-variables
+        - secretRef:
+            name: devops-secret
+            optional: true
+        image: pingidentity/pingdirectory:edge
+        name: pingdirectory-sidecar
+        command: ["tail"]
+        args: ["-f", "/dev/null"]
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi
+        volumeMounts:
+        - name: shared-data
+          mountPath: /opt/out
       terminationGracePeriodSeconds: 300
+      
