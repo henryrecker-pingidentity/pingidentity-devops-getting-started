@@ -72,13 +72,6 @@ spec:
             name: devops-secret
             optional: true
         image: pingidentity/pingdirectory:edge
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - /preStop.sh
         livenessProbe:
           exec:
             command:
@@ -101,10 +94,10 @@ spec:
         resources:
           limits:
             cpu: "2"
-            memory: 2Gi
+            memory: 4Gi
           requests:
             cpu: "2"
-            memory: 2Gi
+            memory: 4Gi
         volumeMounts:
         - name: shared-data
           mountPath: /opt/out
