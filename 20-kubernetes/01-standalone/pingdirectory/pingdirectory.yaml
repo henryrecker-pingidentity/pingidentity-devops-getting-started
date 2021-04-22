@@ -57,14 +57,6 @@ spec:
       resources:
         requests:
           storage: 10Gi
-  # Share /tmp so sidecar can see Java processes
-  - metadata:
-      name: temp
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 10Gi
   template:
     metadata:
       labels:
@@ -142,5 +134,9 @@ spec:
           mountPath: /opt/out
         - name: temp
           mountPath: /tmp
+      # Share /tmp so sidecar can see Java processes. Don't keep /tmp around between restarts though.
+      volumes:
+      - name: temp
+        emptyDir: {}
       terminationGracePeriodSeconds: 300
       
