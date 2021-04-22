@@ -49,6 +49,7 @@ spec:
       role: pingdirectory
   serviceName: pingdirectory-cluster
   volumeClaimTemplates:
+  # Share /opt/out so CSD can get server root files
   - metadata:
       name: shared-data
     spec:
@@ -56,6 +57,7 @@ spec:
       resources:
         requests:
           storage: 10Gi
+  # Share /tmp so sidecar can see Java processes
   - metadata:
       name: temp
     spec:
@@ -71,6 +73,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 9999
+      # Share process namespace for sidecar to get a view inside the main container
       shareProcessNamespace: true
       containers:
       - envFrom:
@@ -103,10 +106,11 @@ spec:
         resources:
           limits:
             cpu: "2"
-            memory: 4Gi
+            memory: 3Gi
           requests:
             cpu: "2"
-            memory: 4Gi
+            memory: 3Gi
+        # Volume mounts for /opt/out and /tmp shared between containers
         volumeMounts:
         - name: shared-data
           mountPath: /opt/out
@@ -120,16 +124,19 @@ spec:
             optional: true
         image: pingidentity/pingdirectory:edge
         imagePullPolicy: Always
+        # Run the same pingdirectory image without it doing anything on startup
         name: pingdirectory-sidecar
         command: ["tail"]
         args: ["-f", "/dev/null"]
+        # CSD requires a lot of resources by default
         resources:
           limits:
             cpu: "1"
-            memory: 4Gi
+            memory: 2Gi
           requests:
             cpu: "1"
-            memory: 4Gi
+            memory: 2Gi
+        # Volume mounts for /opt/out and /tmp shared between containers
         volumeMounts:
         - name: shared-data
           mountPath: /opt/out
