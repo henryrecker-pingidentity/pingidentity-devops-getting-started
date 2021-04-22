@@ -56,6 +56,13 @@ spec:
       resources:
         requests:
           storage: 10Gi
+  - metadata:
+      name: temp
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
@@ -64,6 +71,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 9999
+      shareProcessNamespace: true
       containers:
       - envFrom:
         - configMapRef:
@@ -72,6 +80,7 @@ spec:
             name: devops-secret
             optional: true
         image: pingidentity/pingdirectory:edge
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:
@@ -101,6 +110,8 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /opt/out
+        - name: temp
+          mountPath: /tmp
       - envFrom:
         - configMapRef:
             name: pingdirectory-environment-variables
@@ -108,18 +119,21 @@ spec:
             name: devops-secret
             optional: true
         image: pingidentity/pingdirectory:edge
+        imagePullPolicy: Always
         name: pingdirectory-sidecar
         command: ["tail"]
         args: ["-f", "/dev/null"]
         resources:
           limits:
             cpu: "1"
-            memory: 1Gi
+            memory: 4Gi
           requests:
             cpu: "1"
-            memory: 1Gi
+            memory: 4Gi
         volumeMounts:
         - name: shared-data
           mountPath: /opt/out
+        - name: temp
+          mountPath: /tmp
       terminationGracePeriodSeconds: 300
       
